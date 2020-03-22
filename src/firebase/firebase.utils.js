@@ -1,26 +1,62 @@
-import firebase from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
+import React from 'react';
+import { Switch, Route } from 'react-router-dom';
 
-const config = {
-    apiKey: "AIzaSyBGCVjIv5mVMp9c-pqgRCK0a51WztrQRSU",
-    authDomain: "crwn-db-5.firebaseapp.com",
-    databaseURL: "https://crwn-db-5.firebaseio.com",
-    projectId: "crwn-db-5",
-    storageBucket: "crwn-db-5.appspot.com",
-    messagingSenderId: "434062697851",
-    appId: "1:434062697851:web:28bcacade8047eac6b89de",
-    measurementId: "G-E3BPMYJK50"
-};
+import './App.css';
 
-firebase.initializeApp(config);
+import HomePage from './pages/homepage/homepage.component';
+import ShopPage from './pages/shop/shop.component';
+import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
+import Header from './components/header/header.component';
+import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 
-export const auth = firebase.auth();
-export const firestore = firebase.firestore();
+class App extends React.Component {
+    constructor() {
+        super();
 
-const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
-export const signInWithGoogle = () => auth.signInWithPopup(provider);
+        this.state = {
+            currentUser: null
+        };
+    }
 
-export default firebase;
+    unsubscribeFromAuth = null;
 
+    componentDidMount() {
+        this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+            if (userAuth) {
+                const userRef = await createUserProfileDocument(userAuth);
+
+                userRef.onSnapshot(snapShot => {
+                    this.setState({
+                        currentUser: {
+                            id: snapShot.id,
+                            ...snapShot.data()
+                        }
+                    });
+
+                    console.log(this.state);
+                });
+            }
+
+            this.setState({ currentUser: userAuth });
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeFromAuth();
+    }
+
+    render() {
+        return (
+            <div>
+                <Header currentUser={this.state.currentUser} />
+                <Switch>
+                    <Route exact path='/' component={HomePage} />
+                    <Route path='/shop' component={ShopPage} />
+                    <Route path='/signin' component={SignInAndSignUpPage} />
+                </Switch>
+            </div>
+        );
+    }
+}
+
+export default App;
