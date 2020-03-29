@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "engines" : {
     "node": "12.16.1",
+    "npm": "6.13.4",
     "yarn": "1.22.4"
   },
   "scripts": {
@@ -11,7 +12,7 @@
     "build": "cd client && yarn run build",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "start": "node server.js",
-    "heroku-postbuild": "cd client && yarn add && yarn add --only=dev --no-shrinkwrap && yarn run build"
+    "heroku-postbuild": "cd client && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
